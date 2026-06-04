@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Valeria Co. — Личная система</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg: #f5f5f7;
+    --surface: #ffffff;
+    --surface-2: #f5f5f7;
+    --surface-3: #e8e8ed;
+    --text-primary: #1d1d1f;
+    --text-secondary: #6e6e73;
+    --text-tertiary: #aeaeb2;
+    --accent-blue: #0071e3;
+    --accent-blue-light: #e8f2fd;
+    --accent-green: #30d158;
+    --accent-green-light: #e8faf0;
+    --accent-red: #ff453a;
+    --accent-orange: #ff9f0a;
+    --accent-purple: #bf5af2;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.08), 0 1px 4px rgba(0,0,0,0.04);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-font-smoothing:antialiased; }
+
+  body {
+    font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+  }
+
+  /* ─── SCREENS ─── */
+  .screen { display: none; }
+  .screen.active { display: block; }
+  #screen-home.active { display: flex; }
+
+  /* ─── HOME ─── */
+  #screen-home {
+    min-height: 100vh;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px;
+  }
+  .home-eyebrow {
+    font-size: 12px; font-weight: 600; color: var(--accent-blue);
+    text-transform: uppercase; letter-spacing: .08em; margin-bottom: 14px;
+    opacity: 0; animation: fadeUp .5s cubic-bezier(0.16,1,0.3,1) .05s both;
+  }
+  .home-title {
+    font-size: 52px; font-weight: 700; color: var(--text-primary);
+    letter-spacing: -0.03em; text-align: center; line-height: 1.08;
+    margin-bottom: 10px;
+    opacity: 0; animation: fadeUp .55s cubic-bezier(0.16,1,0.3,1) .1s both;
+  }
+  .home-sub {
+    font-size: 15px; color: var(--text-secondary); text-align: center;
+    margin-bottom: 48px;
+    opacity: 0; animation: fadeUp .5s cubic-bezier(0.16,1,0.3,1) .15s both;
+  }
+  .home-cards {
+    display: flex; flex-direction: column; gap: 12px;
+    width: 100%; max-width: 420px;
+  }
+  .home-card {
+    background: var(--surface);
+    border-radius: var(--radius-xl);
+    padding: 18px 20px;
+    box-shadow: var(--shadow-md);
+    display: flex; align-items: center; gap: 16px;
+    cursor: pointer; border: none; width: 100%; text-align: left;
+    transition: transform .2s cubic-bezier(0.16,1,0.3,1), box-shadow .2s;
+    opacity: 0;
+  }
+  .home-card:nth-child(1) { animation: fadeUp .5s cubic-bezier(0.16,1,0.3,1) .22s both; }
+  .home-card:nth-child(2) { animation: fadeUp .5s cubic-bezier(0.16,1,0.3,1) .28s both; }
+  .home-card:nth-child(3) { animation: fadeUp .5s cubic-bezier(0.16,1,0.3,1) .34s both; }
+  .home-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+  .home-card:active { transform: scale(0.98); }
+  .home-card-icon {
+    width: 50px; height: 50px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; flex-shrink: 0;
+  }
+  .home-card-body { flex: 1; }
+  .home-card-title { font-size: 17px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.2px; }
+  .home-card-desc { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+  .home-card-arrow { font-size: 22px; color: var(--text-tertiary); line-height: 1; }
+
+  /* ─── SECTION NAV (for Schedule & Habits) ─── */
+  .sec-nav {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    padding: 14px 32px;
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .sec-nav-back {
+    display: flex; align-items: center; gap: 4px;
+    font-size: 14px; font-weight: 500; color: var(--accent-blue);
+    cursor: pointer; background: none; border: none; padding: 0;
+    transition: opacity .15s; flex-shrink: 0;
+  }
+  .sec-nav-back:hover { opacity: .65; }
+  .sec-nav-title { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+
+  /* ─── PLANS: HEADER ─── */
+  .header {
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    padding: 20px 32px 16px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:16px; }
+  .brand-back {
+    font-size: 13px; font-weight: 600; color: var(--accent-blue);
+    letter-spacing: .02em; cursor: pointer; background: none;
+    border: none; padding: 0; display: flex; align-items: center; gap: 3px;
+    transition: opacity .15s;
+  }
+  .brand-back:hover { opacity: .65; }
+  .title { font-size: 28px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.5px; }
+  .subtitle { font-size: 14px; color: var(--text-secondary); margin-top: 2px; font-weight: 400; }
+  .header-stats { display:flex; gap:20px; }
+  .stat { text-align:right; }
+  .stat-num { font-size:22px; font-weight:700; color:var(--text-primary); letter-spacing:-0.5px; }
+  .stat-label { font-size:11px; color:var(--text-tertiary); font-weight:500; }
+
+  /* PROGRESS BAR */
+  .progress-wrap { display:flex; gap:3px; margin-top:14px; }
+  .progress-segment { height:3px; flex:1; background:var(--surface-3); border-radius:2px; overflow:hidden; transition:all .3s; }
+  .progress-segment .fill { height:100%; background:var(--accent-blue); border-radius:2px; width:0%; transition:width .5s cubic-bezier(.4,0,.2,1); }
+
+  /* TABS */
+  .tabs-wrap { padding: 16px 32px 0; display:flex; gap:8px; flex-wrap:wrap; }
+  .tab {
+    padding: 7px 16px; border-radius: 20px; font-size: 13px;
+    font-weight: 500; cursor: pointer; border: none;
+    background: var(--surface); color: var(--text-secondary);
+    transition: all .2s; box-shadow: var(--shadow-sm);
+  }
+  .tab.active { background: var(--accent-blue); color: #fff; box-shadow: 0 2px 8px rgba(0,113,227,0.3); }
+  .tab:hover:not(.active) { background: var(--surface-3); color: var(--text-primary); }
+
+  /* MAIN */
+  .main { padding: 20px 32px 60px; }
+
+  /* WEEK SECTION */
+  .week-section { margin-bottom: 24px; display:none; }
+  .week-section.active { display:block; }
+  .week-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px; padding: 0 4px;
+  }
+  .week-label { font-size: 12px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: .08em; }
+  .week-title { font-size: 20px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.3px; }
+  .week-focus { font-size: 13px; color: var(--text-secondary); margin-top: 1px; }
+  .week-progress-text { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+
+  /* COLUMNS */
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  /* COLUMN CARD */
+  .col-card { background: var(--surface); border-radius: var(--radius-xl); padding: 20px; box-shadow: var(--shadow-md); }
+  .col-header {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--surface-3);
+  }
+  .col-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+  .col-title-text { font-size: 14px; font-weight: 600; color: var(--text-primary); }
+  .col-count { margin-left: auto; font-size: 12px; color: var(--text-tertiary); font-weight: 500; }
+
+  /* TASK */
+  .task {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 10px 0; border-bottom: 1px solid var(--surface-3);
+    cursor: pointer; transition: all .15s;
+  }
+  .task:last-child { border-bottom: none; padding-bottom: 0; }
+  .task:first-child { padding-top: 0; }
+  .task:hover { opacity: .8; }
+  .task-check {
+    width: 20px; height: 20px; border-radius: 50%;
+    border: 1.5px solid var(--surface-3); flex-shrink: 0; margin-top: 1px;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .2s cubic-bezier(.4,0,.2,1); background: var(--surface);
+  }
+  .task-check svg { opacity:0; transform:scale(0.5); transition:all .2s cubic-bezier(.4,0,.2,1); }
+  .task.done .task-check { background: var(--accent-green); border-color: var(--accent-green); }
+  .task.done .task-check svg { opacity:1; transform:scale(1); }
+  .task.done .task-name { color: var(--text-tertiary); text-decoration: line-through; text-decoration-color: var(--text-tertiary); }
+  .task.done .task-sub { opacity: .5; }
+  .task-body { flex:1; min-width:0; }
+  .task-name { font-size: 13.5px; font-weight: 500; color: var(--text-primary); line-height: 1.4; transition: color .2s; }
+  .task-sub { font-size: 11.5px; color: var(--text-tertiary); margin-top: 2px; line-height: 1.4; }
+
+  /* DEFER */
+  .defer-item {
+    display:flex; align-items:center; gap:10px; padding:8px 0;
+    border-bottom:1px solid var(--surface-3); font-size:13px; color:var(--text-secondary);
+  }
+  .defer-item:last-child { border-bottom:none; }
+  .defer-dot { width:6px; height:6px; border-radius:50%; background:var(--surface-3); flex-shrink:0; }
+
+  /* RULES */
+  .rules-section { background: var(--surface); border-radius: var(--radius-xl); padding: 20px; box-shadow: var(--shadow-md); margin-bottom: 24px; display:none; }
+  .rules-section.active { display:block; }
+  .rules-header { display:flex; align-items:center; gap:8px; margin-bottom:14px; padding-bottom:12px; border-bottom:1px solid var(--surface-3); }
+  .rules-title { font-size:14px; font-weight:600; color:var(--text-primary); }
+  .rule-item { display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--surface-3); }
+  .rule-item:last-child { border-bottom:none; }
+  .rule-label { font-size:12px; font-weight:600; color:var(--text-tertiary); min-width:110px; flex-shrink:0; padding-top:1px; }
+  .rule-text { font-size:13px; color:var(--text-primary); line-height:1.5; }
+  .rule-text b { font-weight:600; }
+
+  /* OVERVIEW */
+  .overview { display:none; }
+  .overview.active { display:block; }
+  .overview-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:20px; }
+  .ov-card { background:var(--surface); border-radius:var(--radius-lg); padding:16px; box-shadow:var(--shadow-md); cursor:pointer; transition:all .2s; }
+  .ov-card:hover { transform:translateY(-2px); box-shadow:var(--shadow-lg); }
+  .ov-week { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; color:var(--text-tertiary); margin-bottom:6px; }
+  .ov-title { font-size:15px; font-weight:600; color:var(--text-primary); margin-bottom:4px; letter-spacing:-0.2px; }
+  .ov-focus { font-size:11.5px; color:var(--text-secondary); margin-bottom:12px; line-height:1.4; }
+  .ov-bar-wrap { height:4px; background:var(--surface-3); border-radius:2px; overflow:hidden; margin-bottom:6px; }
+  .ov-bar { height:100%; border-radius:2px; transition:width .5s; }
+  .ov-pct { font-size:11px; font-weight:600; color:var(--text-tertiary); }
+
+  .w1-color { color:#0071e3; } .w1-bg { background:#0071e3; }
+  .w2-color { color:#30d158; } .w2-bg { background:#30d158; }
+  .w3-color { color:#bf5af2; } .w3-bg { background:#bf5af2; }
+  .w4-color { color:#ff9f0a; } .w4-bg { background:#ff9f0a; }
+
+  /* ─── SCHEDULE ─── */
+  .sched-header { margin-bottom: 20px; padding: 0 4px; }
+  .sched-eyebrow { font-size: 11px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: .1em; margin-bottom: 4px; }
+  .sched-title { font-size: 26px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.02em; }
+  .sched-subtitle { font-size: 13px; color: var(--text-secondary); margin-top: 4px; line-height: 1.5; }
+
+  .sched-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  .sched-pill { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; background: var(--surface); border-radius: 20px; box-shadow: var(--shadow-sm); font-size: 12px; font-weight: 500; color: var(--text-primary); }
+  .sched-pill-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  .sched-grid-wrap { overflow-x: auto; margin-bottom: 20px; -webkit-overflow-scrolling: touch; }
+  .sched-grid { display: grid; grid-template-columns: repeat(7, minmax(130px, 1fr)); gap: 10px; min-width: 700px; }
+
+  .sched-day { background: var(--surface); border-radius: var(--radius-lg); padding: 14px 12px; box-shadow: var(--shadow-md); }
+  .sched-day-name { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+  .sched-day-type { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--text-tertiary); margin-bottom: 12px; }
+
+  .sched-block { border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; transition: transform .15s, box-shadow .15s; }
+  .sched-block:last-child { margin-bottom: 0; }
+  .sched-block:hover { transform: scale(1.02); box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+  .sched-block-name { font-size: 12px; font-weight: 600; line-height: 1.3; }
+  .sched-block-time { font-size: 11px; opacity: .55; margin-top: 2px; }
+
+  .cat-biz     { color: #5856d6; background: rgba(88,86,214,0.08); }
+  .cat-blog    { color: #ff9500; background: rgba(255,149,0,0.08); }
+  .cat-friends { color: #34c759; background: rgba(52,199,89,0.08); }
+  .cat-workout { color: #007aff; background: rgba(0,122,255,0.08); }
+  .cat-rest    { color: #ff2d55; background: rgba(255,45,85,0.07); }
+  .cat-routine { color: var(--text-secondary); background: rgba(0,0,0,0.03); }
+  .cat-fix     { color: var(--text-tertiary); background: #f5f5f7; }
+
+  .day-col-biz     .sched-day-name { color: #5856d6; }
+  .day-col-blog    .sched-day-name { color: #ff9500; }
+  .day-col-friends .sched-day-name { color: #34c759; }
+  .day-col-mixed   .sched-day-name { color: #007aff; }
+
+  .sched-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+  .sched-stat-card { background: var(--surface); border-radius: var(--radius-xl); padding: 16px 20px; box-shadow: var(--shadow-md); display: flex; align-items: center; gap: 14px; transition: transform .2s, box-shadow .2s; }
+  .sched-stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+  .sched-stat-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+  .sched-stat-num { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+  .sched-stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 1px; }
+
+  .sched-rules-card { background: var(--surface); border-radius: var(--radius-xl); padding: 20px; box-shadow: var(--shadow-md); }
+  .sched-rules-header { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--surface-3); }
+  .sched-rule-item { display: flex; align-items: flex-start; gap: 12px; padding: 10px 8px; border-bottom: 1px solid var(--surface-3); border-radius: 8px; transition: background .15s; }
+  .sched-rule-item:last-child { border-bottom: none; padding-bottom: 4px; }
+  .sched-rule-item:hover { background: var(--surface-2); }
+  .sched-rule-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+  .sched-rule-name { font-size: 13.5px; font-weight: 600; color: var(--text-primary); line-height: 1.3; }
+  .sched-rule-desc { font-size: 12px; color: var(--text-secondary); margin-top: 2px; line-height: 1.4; }
+
+  /* ─── HABITS PLACEHOLDER ─── */
+  .habits-placeholder {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 80px 24px; text-align: center;
+  }
+  .habits-placeholder-icon { font-size: 56px; margin-bottom: 20px; }
+  .habits-placeholder-title { font-size: 22px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.3px; margin-bottom: 8px; }
+  .habits-placeholder-sub { font-size: 14px; color: var(--text-secondary); line-height: 1.5; max-width: 300px; }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.15)} 100%{transform:scale(1)} }
+  .task-check.pop { animation: pop .3s cubic-bezier(.4,0,.2,1); }
+
+  #screen-schedule.active .sched-day { animation: fadeUp .5s cubic-bezier(0.16,1,0.3,1) both; }
+  #screen-schedule.active .sched-day:nth-child(1) { animation-delay: .05s; }
+  #screen-schedule.active .sched-day:nth-child(2) { animation-delay: .10s; }
+  #screen-schedule.active .sched-day:nth-child(3) { animation-delay: .15s; }
+  #screen-schedule.active .sched-day:nth-child(4) { animation-delay: .20s; }
+  #screen-schedule.active .sched-day:nth-child(5) { animation-delay: .25s; }
+  #screen-schedule.active .sched-day:nth-child(6) { animation-delay: .30s; }
+  #screen-schedule.active .sched-day:nth-child(7) { animation-delay: .35s; }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width:6px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:var(--surface-3); border-radius:3px; }
+
+  /* ─── RESPONSIVE ─── */
+  @media(max-width:700px) {
+    .header, .tabs-wrap, .main { padding-left:16px; padding-right:16px; }
+    .sec-nav { padding-left:16px; padding-right:16px; }
+    .cols { grid-template-columns:1fr; }
+    .overview-grid { grid-template-columns:1fr 1fr; }
+    .header-stats { gap:12px; }
+    .sched-stats { grid-template-columns:1fr; }
+    .home-title { font-size: 38px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════
+     HOME SCREEN
+════════════════════════════════════════════════ -->
+<div id="screen-home" class="screen active">
+  <div class="home-eyebrow">Valeria Co.</div>
+  <h1 class="home-title">Личная<br>система</h1>
+  <p class="home-sub">Планы, график и привычки в одном месте</p>
+  <div class="home-cards">
+    <button class="home-card" onclick="openSection('plans')">
+      <div class="home-card-icon" style="background:#e8f2fd">📋</div>
+      <div class="home-card-body">
+        <div class="home-card-title">Планы</div>
+        <div class="home-card-desc">Задачи на месяц по неделям</div>
+      </div>
+      <div class="home-card-arrow">›</div>
+    </button>
+    <button class="home-card" onclick="openSection('schedule')">
+      <div class="home-card-icon" style="background:rgba(88,86,214,0.1)">🗓️</div>
+      <div class="home-card-body">
+        <div class="home-card-title">График</div>
+        <div class="home-card-desc">Недельный ритм и расписание</div>
+      </div>
+      <div class="home-card-arrow">›</div>
+    </button>
+    <button class="home-card" onclick="openSection('habits')">
+      <div class="home-card-icon" style="background:rgba(52,199,89,0.1)">✅</div>
+      <div class="home-card-body">
+        <div class="home-card-title">Привычки</div>
+        <div class="home-card-desc">Ежедневный трекер привычек</div>
+      </div>
+      <div class="home-card-arrow">›</div>
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PLANS SCREEN
+════════════════════════════════════════════════ -->
+<div id="screen-plans" class="screen">
+
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <button class="brand-back" onclick="goHome()">‹ Главная</button>
+        <div class="title">План месяца</div>
+        <div class="subtitle">Бизнес и блог · Июнь 2026</div>
+      </div>
+      <div class="header-stats">
+        <div class="stat">
+          <div class="stat-num" id="done-count">0</div>
+          <div class="stat-label">выполнено</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num" id="total-count">0</div>
+          <div class="stat-label">всего задач</div>
+        </div>
+      </div>
+    </div>
+    <div class="progress-wrap" id="progress-bar"></div>
+  </div>
+
+  <div class="tabs-wrap">
+    <button class="tab active" onclick="switchTab('overview')">Обзор</button>
+    <button class="tab" onclick="switchTab('w1')">Неделя 1</button>
+    <button class="tab" onclick="switchTab('w2')">Неделя 2</button>
+    <button class="tab" onclick="switchTab('w3')">Неделя 3</button>
+    <button class="tab" onclick="switchTab('w4')">Неделя 4</button>
+    <button class="tab" onclick="switchTab('rules')">Правила</button>
+  </div>
+
+  <div class="main">
+
+    <!-- OVERVIEW -->
+    <div class="overview active" id="tab-overview">
+      <div class="overview-grid">
+        <div class="ov-card" onclick="switchTab('w1')">
+          <div class="ov-week w1-color">Неделя 1</div>
+          <div class="ov-title">Упаковка и старт</div>
+          <div class="ov-focus">Первый кейс · договор · AI-ассистент · начало блога</div>
+          <div class="ov-bar-wrap"><div class="ov-bar w1-bg" id="ov-bar-w1" style="width:0%"></div></div>
+          <div class="ov-pct" id="ov-pct-w1">0%</div>
+        </div>
+        <div class="ov-card" onclick="switchTab('w2')">
+          <div class="ov-week w2-color">Неделя 2</div>
+          <div class="ov-title">Портфолио и продажи</div>
+          <div class="ov-focus">Notion-портфолио · новый чек · Behance · ритм блога</div>
+          <div class="ov-bar-wrap"><div class="ov-bar w2-bg" id="ov-bar-w2" style="width:0%"></div></div>
+          <div class="ov-pct" id="ov-pct-w2">0%</div>
+        </div>
+        <div class="ov-card" onclick="switchTab('w3')">
+          <div class="ov-week w3-color">Неделя 3</div>
+          <div class="ov-title">AI и сайт</div>
+          <div class="ov-focus">AI-агент · сайт Valeria Co. · обучения · стабильность</div>
+          <div class="ov-bar-wrap"><div class="ov-bar w3-bg" id="ov-bar-w3" style="width:0%"></div></div>
+          <div class="ov-pct" id="ov-pct-w3">0%</div>
+        </div>
+        <div class="ov-card" onclick="switchTab('w4')">
+          <div class="ov-week w4-color">Неделя 4</div>
+          <div class="ov-title">Итоги и масштаб</div>
+          <div class="ov-focus">Запуск сайта · площадки · джуниор · итог месяца</div>
+          <div class="ov-bar-wrap"><div class="ov-bar w4-bg" id="ov-bar-w4" style="width:0%"></div></div>
+          <div class="ov-pct" id="ov-pct-w4">0%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEEK 1 -->
+    <div class="week-section" id="tab-w1">
+      <div class="week-header">
+        <div>
+          <div class="week-label w1-color">Неделя 1</div>
+          <div class="week-title">Упаковка и старт</div>
+          <div class="week-focus">Первый кейс · договор · AI-ассистент · начало блога</div>
+        </div>
+        <div class="week-progress-text" id="w1-progress">0 / 8</div>
+      </div>
+      <div class="cols">
+        <div class="col-card">
+          <div class="col-header">
+            <div class="col-icon" style="background:#e8f2fd">💼</div>
+            <div class="col-title-text">Бизнес</div>
+            <div class="col-count" id="w1-biz-count">0/4</div>
+          </div>
+          <div class="task" data-week="w1" data-group="biz" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">Упаковать 1 прошлый проект в кейс</div><div class="task-sub">С AI за 1–2 часа: задача → процесс → результат</div></div>
+          </div>
+          <div class="task" data-week="w1" data-group="biz" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">Написать старым клиентам</div><div class="task-sub">3–5 сообщений, без продаж в лоб</div></div>
+          </div>
+          <div class="task" data-week="w1" data-group="biz" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">Составить шаблон договора с AI</div><div class="task-sub">Проверить у юриста онлайн (Правовед.ру)</div></div>
+          </div>
+          <div class="task" data-week="w1" data-group="biz" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">Настроить AI-ассистента для анализа ЦА</div><div class="task-sub">Системный промпт по твоему процессу работы</div></div>
+          </div>
+        </div>
+        <div class="col-card">
+          <div class="col-header">
+            <div class="col-icon" style="background:#fff0f0">📱</div>
+            <div class="col-title-text">Блог</div>
+            <div class="col-count" id="w1-blog-count">0/4</div>
+          </div>
+          <div class="task" data-week="w1" data-group="blog" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">Пройти 3-й урок по блогу</div><div class="task-sub">Применить сразу — не откладывать</div></div>
+          </div>
+          <div class="task" data-week="w1" data-group="blog" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">Поставить цели блога письменно</div><div class="task-sub">Зачем блог, кто ЦА, что продаёт</div></div>
+          </div>
+          <div class="task" data-week="w1" data-group="blog" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">Сделать актуальные «Обо мне»</div><div class="task-sub">Кто ты, что делаешь, как заказать</div></div>
+          </div>
+          <div class="task" data-week="w1" data-group="blog" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">Опубликовать первый пост — знакомство</div><div class="task-sub">Голосовая заметка → AI → правка 10 мин</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEEK 2 -->
+    <div class="week-section" id="tab-w2">
+      <div class="week-header">
+        <div>
+          <div class="week-label w2-color">Неделя 2</div>
+          <div class="week-title">Портфолио и продажи</div>
+          <div class="week-focus">Notion-портфолио · новый чек · Behance · ритм блога</div>
+        </div>
+        <div class="week-progress-text" id="w2-progress">0 / 8</div>
+      </div>
+      <div class="cols">
+        <div class="col-card">
+          <div class="col-header">
+            <div class="col-icon" style="background:#e8f2fd">💼</div>
+            <div class="col-title-text">Бизнес</div>
+            <div class="col-count" id="w2-biz-count">0/4</div>
+          </div>
+          <div class="task" data-week="w2" data-group="biz" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">Собрать портфолио в Notion или Tilda</div><div class="task-sub">Минимум 2–3 кейса + галерея работ</div></div>
+          </div>
+          <div class="task" data-week="w2" data-group="biz" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">Выйти на новый чек с первым клиентом</div><div class="task-sub">Следующий запрос — называть новую цену</div></div>
+          </div>
+          <div class="task" data-week="w2" data-group="biz" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">Разместить портфолио на Behance / Dribbble</div><div class="task-sub">Хотя бы 2–3 работы для начала</div></div>
+          </div>
+          <div class="task" data-week="w2" data-group="biz" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">Упаковать второй кейс</div><div class="task-sub">Лого / стиль или UI/UX — лучшее что есть</div></div>
+          </div>
+        </div>
+        <div class="col-card">
+          <div class="col-header">
+            <div class="col-icon" style="background:#fff0f0">📱</div>
+            <div class="col-title-text">Блог</div>
+            <div class="col-count" id="w2-blog-count">0/4</div>
+          </div>
+          <div class="task" data-week="w2" data-group="blog" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">Расписать стратегию блога</div><div class="task-sub">Рубрики, частота, форматы, темы на месяц</div></div>
+          </div>
+          <div class="task" data-week="w2" data-group="blog" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">Сделать 2 пачки актуальных</div><div class="task-sub">Услуги и кейсы / процесс работы</div></div>
+          </div>
+          <div class="task" data-week="w2" data-group="blog" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">3 поста за неделю по стратегии</div><div class="task-sub">Кейс / процесс / личное</div></div>
+          </div>
+          <div class="task" data-week="w2" data-group="blog" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">Первый рилс — знакомство с процессом</div><div class="task-sub">Закулисье работы или до/после проекта</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEEK 3 -->
+    <div class="week-section" id="tab-w3">
+      <div class="week-header">
+        <div>
+          <div class="week-label w3-color">Неделя 3</div>
+          <div class="week-title">AI и сайт</div>
+          <div class="week-focus">AI-агент · сайт Valeria Co. · обучения · стабильность</div>
+        </div>
+        <div class="week-progress-text" id="w3-progress">0 / 8</div>
+      </div>
+      <div class="cols">
+        <div class="col-card">
+          <div class="col-header">
+            <div class="col-icon" style="background:#e8f2fd">💼</div>
+            <div class="col-title-text">Бизнес</div>
+            <div class="col-count" id="w3-biz-count">0/4</div>
+          </div>
+          <div class="task" data-week="w3" data-group="biz" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">Изучить AI-агентов — первый рабочий агент</div><div class="task-sub">Начни с простого: агент для анализа ЦА</div></div>
+          </div>
+          <div class="task" data-week="w3" data-group="biz" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">Начать делать сайт Valeria Co.</div><div class="task-sub">Вайбкодинг — оффер, кейсы, контакт</div></div>
+          </div>
+          <div class="task" data-week="w3" data-group="biz" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">Пройти купленные обучения — блоками</div><div class="task-sub">30–60 минут в день, не всё сразу</div></div>
+          </div>
+          <div class="task" data-week="w3" data-group="biz" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">Поставить таблицу учёта финансов</div><div class="task-sub">Google Sheets — клиент, сумма, чек, статус</div></div>
+          </div>
+        </div>
+        <div class="col-card">
+          <div class="col-header">
+            <div class="col-icon" style="background:#fff0f0">📱</div>
+            <div class="col-title-text">Блог</div>
+            <div class="col-count" id="w3-blog-count">0/4</div>
+          </div>
+          <div class="task" data-week="w3" data-group="blog" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">3 поста за неделю по стратегии</div><div class="task-sub">AI помогает — 15–20 мин на пост</div></div>
+          </div>
+          <div class="task" data-week="w3" data-group="blog" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">Второй рилс — кейс или до/после</div><div class="task-sub">Показывает экспертность наглядно</div></div>
+          </div>
+          <div class="task" data-week="w3" data-group="blog" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">Выписать бренды для коллаборации</div><div class="task-sub">10–15 аккаунтов в нише, начать следить</div></div>
+          </div>
+          <div class="task" data-week="w3" data-group="blog" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">Анализ первых постов — что зашло</div><div class="task-sub">Охваты, реакции, комментарии</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WEEK 4 -->
+    <div class="week-section" id="tab-w4">
+      <div class="week-header">
+        <div>
+          <div class="week-label w4-color">Неделя 4</div>
+          <div class="week-title">Итоги и масштаб</div>
+          <div class="week-focus">Запуск сайта · площадки · джуниор · итог месяца</div>
+        </div>
+        <div class="week-progress-text" id="w4-progress">0 / 8</div>
+      </div>
+      <div class="cols">
+        <div class="col-card">
+          <div class="col-header">
+            <div class="col-icon" style="background:#e8f2fd">💼</div>
+            <div class="col-title-text">Бизнес</div>
+            <div class="col-count" id="w4-biz-count">0/4</div>
+          </div>
+          <div class="task" data-week="w4" data-group="biz" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">Запустить сайт Valeria Co.</div><div class="task-sub">Минимум: оффер + кейсы + контакт</div></div>
+          </div>
+          <div class="task" data-week="w4" data-group="biz" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">Разместить на всех площадках</div><div class="task-sub">Behance, Dribbble, Telegram-чаты дизайнеров</div></div>
+          </div>
+          <div class="task" data-week="w4" data-group="biz" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">Найти первого джуниора на субподряд</div><div class="task-sub">Разместить задачу, провести тестовое</div></div>
+          </div>
+          <div class="task" data-week="w4" data-group="biz" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">Подвести финансовый итог месяца</div><div class="task-sub">Доход, расходы, план на следующий месяц</div></div>
+          </div>
+        </div>
+        <div class="col-card">
+          <div class="col-header">
+            <div class="col-icon" style="background:#fff0f0">📱</div>
+            <div class="col-title-text">Блог</div>
+            <div class="col-count" id="w4-blog-count">0/4</div>
+          </div>
+          <div class="task" data-week="w4" data-group="blog" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">3 поста + третий рилс</div><div class="task-sub">Стабильность важнее идеальности</div></div>
+          </div>
+          <div class="task" data-week="w4" data-group="blog" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">Итог месяца в блоге</div><div class="task-sub">Что получилось, что нет — честный пост</div></div>
+          </div>
+          <div class="task" data-week="w4" data-group="blog" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">Контент-план на следующий месяц</div><div class="task-sub">AI составит за 10 минут по твоему брифу</div></div>
+          </div>
+          <div class="task" data-week="w4" data-group="blog" onclick="toggleTask(this)">
+            <div class="task-check"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4L3.5 6.5L9 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            <div class="task-body"><div class="task-name">Написать первому бренду из списка</div><div class="task-sub">Предложить коллаборацию или бартер</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RULES -->
+    <div class="rules-section" id="tab-rules">
+      <div class="rules-header">
+        <div style="font-size:18px">📋</div>
+        <div class="rules-title">Правила месяца</div>
+      </div>
+      <div class="rule-item"><div class="rule-label">Блог · ритм</div><div class="rule-text"><b>3 поста в неделю</b> — обязательно. Лучше короткий но регулярно, чем идеальный раз в месяц.</div></div>
+      <div class="rule-item"><div class="rule-label">Рилсы</div><div class="rule-text">Минимум <b>1 рилс в неделю.</b> Не думай долго — снимай рабочий процесс прямо сейчас.</div></div>
+      <div class="rule-item"><div class="rule-label">Обучения</div><div class="rule-text">Не запоем — <b>30–60 мин в день.</b> Сразу применяй то что изучила.</div></div>
+      <div class="rule-item"><div class="rule-label">Приоритет</div><div class="rule-text">Если не успеваешь — жертвуй упаковкой, но не жертвуй <b>клиентами и постами.</b></div></div>
+      <div class="rule-item"><div class="rule-label">Вайбкодинг</div><div class="rule-text">Изучай параллельно с реальным проектом — <b>сайт Valeria Co.</b> и будет практикой.</div></div>
+      <div class="rule-item"><div class="rule-label">Визитки</div><div class="rule-text">Не срочно. <b>Перенеси на месяц 2</b> — сначала сделай сайт.</div></div>
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--surface-3);">
+        <div class="rules-title" style="margin-bottom:12px;font-size:13px;color:var(--text-secondary)">Отложить на месяц 2</div>
+        <div class="defer-item"><div class="defer-dot"></div>Визитки — после запуска сайта</div>
+        <div class="defer-item"><div class="defer-dot"></div>Глубокое изучение AI-агентов — начать с базового</div>
+        <div class="defer-item"><div class="defer-dot"></div>Коллаборации с брендами — сначала нужна аудитория 500–1000</div>
+        <div class="defer-item"><div class="defer-dot"></div>Курс или наставничество — это месяц 4–5</div>
+        <div class="defer-item"><div class="defer-dot"></div>Все купленные обучения сразу — по одному, блоками</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     SCHEDULE SCREEN
+════════════════════════════════════════════════ -->
+<div id="screen-schedule" class="screen">
+
+  <div class="sec-nav">
+    <button class="sec-nav-back" onclick="goHome()">‹ Главная</button>
+    <div class="sec-nav-title">График недели</div>
+  </div>
+
+  <div class="main">
+    <div class="sched-header">
+      <div class="sched-eyebrow">Личная система</div>
+      <div class="sched-title">Недельный график</div>
+      <div class="sched-subtitle">Ритм: задача 1–1.5 ч → быт/фон 30 мин → задача → отдых 30 мин → задача</div>
+    </div>
+
+    <div class="sched-legend">
+      <div class="sched-pill"><div class="sched-pill-dot" style="background:#5856d6"></div>Бизнес</div>
+      <div class="sched-pill"><div class="sched-pill-dot" style="background:#ff9500"></div>Блог</div>
+      <div class="sched-pill"><div class="sched-pill-dot" style="background:#34c759"></div>Подруги</div>
+      <div class="sched-pill"><div class="sched-pill-dot" style="background:#007aff"></div>Тренировка</div>
+      <div class="sched-pill"><div class="sched-pill-dot" style="background:#ff2d55"></div>Отдых</div>
+      <div class="sched-pill"><div class="sched-pill-dot" style="background:#c7c7cc"></div>Быт / фон</div>
+    </div>
+
+    <div class="sched-grid-wrap">
+      <div class="sched-grid">
+        <div class="sched-day day-col-blog">
+          <div class="sched-day-name">Пн</div>
+          <div class="sched-day-type">Блог</div>
+          <div class="sched-block cat-fix"><div class="sched-block-name">УЧ + быт</div><div class="sched-block-time">10:00–11:00</div></div>
+          <div class="sched-block cat-blog"><div class="sched-block-name">Блог</div><div class="sched-block-time">11:00–12:30</div></div>
+          <div class="sched-block cat-routine"><div class="sched-block-name">Быт / фон</div><div class="sched-block-time">12:30–13:00</div></div>
+          <div class="sched-block cat-blog"><div class="sched-block-name">Блог</div><div class="sched-block-time">13:00–14:30</div></div>
+          <div class="sched-block cat-rest"><div class="sched-block-name">Отдых</div><div class="sched-block-time">14:30–15:00</div></div>
+          <div class="sched-block cat-blog"><div class="sched-block-name">Блог</div><div class="sched-block-time">15:00–16:30</div></div>
+          <div class="sched-block cat-routine"><div class="sched-block-name">Быт / фон</div><div class="sched-block-time">16:30–17:00</div></div>
+          <div class="sched-block cat-fix"><div class="sched-block-name">Бухгалтерия</div><div class="sched-block-time">17:00–17:30</div></div>
+          <div class="sched-block cat-fix"><div class="sched-block-name">Уборка</div><div class="sched-block-time">19:00–19:30</div></div>
+          <div class="sched-block cat-workout"><div class="sched-block-name">Тренировка</div><div class="sched-block-time">20:00–21:00</div></div>
+        </div>
+        <div class="sched-day day-col-mixed">
+          <div class="sched-day-name">Вт</div>
+          <div class="sched-day-type">Смешанный</div>
+          <div class="sched-block cat-fix"><div class="sched-block-name">УЧ + быт</div><div class="sched-block-time">10:00–11:00</div></div>
+          <div class="sched-block cat-biz"><div class="sched-block-name">Бизнес</div><div class="sched-block-time">11:00–12:30</div></div>
+          <div class="sched-block cat-routine"><div class="sched-block-name">Быт / фон</div><div class="sched-block-time">12:30–13:00</div></div>
+          <div class="sched-block cat-blog"><div class="sched-block-name">Блог</div><div class="sched-block-time">13:00–14:00</div></div>
+          <div class="sched-block cat-rest"><div class="sched-block-name">Отдых</div><div class="sched-block-time">14:00–14:30</div></div>
+          <div class="sched-block cat-fix"><div class="sched-block-name">Бухгалтерия</div><div class="sched-block-time">14:30–15:00</div></div>
+          <div class="sched-block cat-fix"><div class="sched-block-name">Уборка</div><div class="sched-block-time">18:00–18:30</div></div>
+          <div class="sched-block cat-workout"><div class="sched-block-name">Тренировка</div><div class="sched-block-time">19:00–22:30</div></div>
+        </div>
+        <div class="sched-day day-col-friends">
+          <div class="sched-day-name">Ср</div>
+          <div class="sched-day-type">Подруги</div>
+          <div class="sched-block cat-fix"><div class="sched-block-name">УЧ + быт</div><div class="sched-block-time">10:00–11:00</div></div>
+          <div class="sched-block cat-biz"><div class="sched-block-name">Бизнес</div><div class="sched-block-time">11:00–12:30</div></div>
+          <div class="sched-block cat-rest"><div class="sched-block-name">Отдых</div><div class="sched-block-time">12:30–13:00</div></div>
+          <div class="sched-block cat-friends"><div class="sched-block-name">Подруги</div><div class="sched-block-time">13:00–18:00</div></div>
+          <div class="sched-block cat-fix"><div class="sched-block-name">Уборка</div><div class="sched-block-time">19:00–19:30</div></div>
+          <div class="sched-block cat-workout"><div class="sched-block-name">Тренировка</div><div class="sched-block-time">20:00–21:00</div></div>
+        </div>
+        <div class="sched-day day-col-mixed">
+          <div class="sched-day-name">Чт</div>
+          <div class="sched-day-type">Смешанный</div>
+          <div class="sched-block cat-fix"><div class="sched-block-name">УЧ + быт</div><div class="sched-block-time">10:00–11:00</div></div>
+          <div class="sched-block cat-biz"><div class="sched-block-name">Бизнес</div><div class="sched-block-time">11:00–12:30</div></div>
+          <div class="sched-block cat-routine"><div class="sched-block-name">Быт / фон</div><div class="sched-block-time">12:30–13:00</div></div>
+          <div class="sched-block cat-blog"><div class="sched-block-name">Блог</div><div class="sched-block-time">13:00–14:00</div></div>
+          <div class="sched-block cat-rest"><div class="sched-block-name">Отдых</div><div class="sched-block-time">14:00–14:30</div></div>
+          <div class="sched-block cat-fix"><div class="sched-block-name">Бухгалтерия</div><div class="sched-block-time">14:30–15:00</div></div>
+          <div class="sched-block cat-fix"><div class="sched-block-name">Уборка</div><div class="sched-block-time">18:00–18:30</div></div>
+          <div class="sched-block cat-workout"><div class="sched-block-name">Тренировка</div><div class="sched-block-time">19:00–22:30</div></div>
+        </div>
+        <div class="sched-day day-col-friends">
+          <div class="sched-day-name">Пт</div>
+          <div class="sched-day-type">Подруги</div>
+          <div class="sched-block cat-fix"><div class="sched-block-name">УЧ + быт</div><div class="sched-block-time">10:00–11:00</div></div>
+          <div class="sched-block cat-blog"><div class="sched-block-name">Блог</div><div class="sched-block-time">11:00–12:30</div></div>
+          <div class="sched-block cat-rest"><div class="sched-block-name">Отдых</div><div class="sched-block-time">12:30–13:00</div></div>
+          <div class="sched-block cat-friends"><div class="sched-block-name">Подруги</div><div class="sched-block-time">13:00–18:00</div></div>
+          <div class="sched-block cat-fix"><div class="sched-block-name">Свободный вечер</div><div class="sched-block-time">18:00+</div></div>
+        </div>
+        <div class="sched-day day-col-biz">
+          <div class="sched-day-name">Сб</div>
+          <div class="sched-day-type">Бизнес</div>
+          <div class="sched-block cat-fix"><div class="sched-block-name">УЧ + быт</div><div class="sched-block-time">10:00–11:00</div></div>
+          <div class="sched-block cat-biz"><div class="sched-block-name">Бизнес</div><div class="sched-block-time">11:00–12:30</div></div>
+          <div class="sched-block cat-routine"><div class="sched-block-name">Быт / фон</div><div class="sched-block-time">12:30–13:00</div></div>
+          <div class="sched-block cat-biz"><div class="sched-block-name">Бизнес</div><div class="sched-block-time">13:00–14:30</div></div>
+          <div class="sched-block cat-rest"><div class="sched-block-name">Отдых</div><div class="sched-block-time">14:30–15:00</div></div>
+          <div class="sched-block cat-biz"><div class="sched-block-name">Бизнес</div><div class="sched-block-time">15:00–16:30</div></div>
+          <div class="sched-block cat-routine"><div class="sched-block-name">Быт / фон</div><div class="sched-block-time">16:30–17:00</div></div>
+          <div class="sched-block cat-fix"><div class="sched-block-name">Бухгалтерия</div><div class="sched-block-time">17:00–17:30</div></div>
+          <div class="sched-block cat-fix"><div class="sched-block-name">Себе / УЧ</div><div class="sched-block-time">17:30+</div></div>
+        </div>
+        <div class="sched-day day-col-mixed">
+          <div class="sched-day-name">Вс</div>
+          <div class="sched-day-type">Смешанный</div>
+          <div class="sched-block cat-fix"><div class="sched-block-name">УЧ + быт</div><div class="sched-block-time">10:00–11:00</div></div>
+          <div class="sched-block cat-biz"><div class="sched-block-name">Бизнес</div><div class="sched-block-time">11:00–12:30</div></div>
+          <div class="sched-block cat-routine"><div class="sched-block-name">Быт / фон</div><div class="sched-block-time">12:30–13:00</div></div>
+          <div class="sched-block cat-blog"><div class="sched-block-name">Блог</div><div class="sched-block-time">13:00–14:30</div></div>
+          <div class="sched-block cat-rest"><div class="sched-block-name">Отдых</div><div class="sched-block-time">14:30–15:00</div></div>
+          <div class="sched-block cat-biz"><div class="sched-block-name">Бизнес</div><div class="sched-block-time">15:00–16:30</div></div>
+          <div class="sched-block cat-fix"><div class="sched-block-name">Бухгалтерия</div><div class="sched-block-time">16:30–17:00</div></div>
+          <div class="sched-block cat-fix"><div class="sched-block-name">Себе / УЧ</div><div class="sched-block-time">17:00+</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sched-stats">
+      <div class="sched-stat-card">
+        <div class="sched-stat-icon" style="background:rgba(88,86,214,0.1)">💼</div>
+        <div><div class="sched-stat-num" style="color:#5856d6">~16 ч</div><div class="sched-stat-label">Бизнес в неделю</div></div>
+      </div>
+      <div class="sched-stat-card">
+        <div class="sched-stat-icon" style="background:rgba(255,149,0,0.1)">✍️</div>
+        <div><div class="sched-stat-num" style="color:#ff9500">~10 ч</div><div class="sched-stat-label">Блог в неделю</div></div>
+      </div>
+      <div class="sched-stat-card">
+        <div class="sched-stat-icon" style="background:rgba(52,199,89,0.1)">📊</div>
+        <div><div class="sched-stat-num" style="color:#34c759">~2.5 ч</div><div class="sched-stat-label">Бухгалтерия в неделю</div></div>
+      </div>
+    </div>
+
+    <div class="sched-rules-card">
+      <div class="sched-rules-header">
+        <div style="font-size:18px">📌</div>
+        <div class="rules-title">Ключевые правила</div>
+      </div>
+      <div class="sched-rule-item">
+        <div class="sched-rule-icon" style="background:rgba(255,149,0,0.1)">🌅</div>
+        <div><div class="sched-rule-name">Пн — только блог</div><div class="sched-rule-desc">Голова свежая с начала недели — идут на творческую работу.</div></div>
+      </div>
+      <div class="sched-rule-item">
+        <div class="sched-rule-icon" style="background:rgba(88,86,214,0.1)">💼</div>
+        <div><div class="sched-rule-name">Сб — только бизнес</div><div class="sched-rule-desc">Длинный день без тренировки — глубокая работа по студии.</div></div>
+      </div>
+      <div class="sched-rule-item">
+        <div class="sched-rule-icon" style="background:rgba(52,199,89,0.1)">🎯</div>
+        <div><div class="sched-rule-name">Ср и Пт — подруги</div><div class="sched-rule-desc">Утром один рабочий блок, потом встреча. Не пытаться работать после.</div></div>
+      </div>
+      <div class="sched-rule-item">
+        <div class="sched-rule-icon" style="background:rgba(0,122,255,0.1)">🔄</div>
+        <div><div class="sched-rule-name">Ритм каждые 1.5 часа</div><div class="sched-rule-desc">Задача → быт/фон 30 мин → задача → отдых 30 мин → задача.</div></div>
+      </div>
+      <div class="sched-rule-item">
+        <div class="sched-rule-icon" style="background:rgba(255,149,0,0.1)">📅</div>
+        <div><div class="sched-rule-name">Раз в 3 месяца — бухгалтерский день</div><div class="sched-rule-desc">Один день целиком на отчётность, лучше в субботу. Вносить заранее.</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     HABITS SCREEN
+════════════════════════════════════════════════ -->
+<div id="screen-habits" class="screen">
+  <div class="sec-nav">
+    <button class="sec-nav-back" onclick="goHome()">‹ Главная</button>
+    <div class="sec-nav-title">Привычки</div>
+  </div>
+  <div class="habits-placeholder">
+    <div class="habits-placeholder-icon">✅</div>
+    <div class="habits-placeholder-title">Трекер привычек</div>
+    <div class="habits-placeholder-sub">Скоро здесь появится твой ежедневный трекер. Напиши, какие привычки хочешь отслеживать.</div>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'valeria_tracker_v1';
+
+  function loadState() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch(e) { return {}; }
+  }
+  function saveState(s) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch(e) {}
+  }
+
+  let state = loadState();
+
+  function openSection(name) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + name).classList.add('active');
+    window.scrollTo(0, 0);
+    if (name === 'plans') updateAll();
+  }
+
+  function goHome() {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-home').classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  function getTaskId(el) {
+    const week = el.dataset.week;
+    const group = el.dataset.group;
+    const name = el.querySelector('.task-name').textContent.trim();
+    return `${week}_${group}_${name.slice(0,30)}`;
+  }
+
+  function toggleTask(el) {
+    const id = getTaskId(el);
+    const isDone = el.classList.contains('done');
+    if (isDone) {
+      el.classList.remove('done');
+      state[id] = false;
+    } else {
+      el.classList.add('done');
+      state[id] = true;
+      const check = el.querySelector('.task-check');
+      check.classList.add('pop');
+      setTimeout(() => check.classList.remove('pop'), 300);
+    }
+    saveState(state);
+    updateAll();
+  }
+
+  function updateAll() {
+    const weeks = ['w1','w2','w3','w4'];
+    let totalDone = 0, totalAll = 0;
+
+    weeks.forEach(w => {
+      const tasks = document.querySelectorAll(`[data-week="${w}"]`);
+      const done  = document.querySelectorAll(`[data-week="${w}"].done`);
+      const bizT  = document.querySelectorAll(`[data-week="${w}"][data-group="biz"]`);
+      const bizD  = document.querySelectorAll(`[data-week="${w}"][data-group="biz"].done`);
+      const blogT = document.querySelectorAll(`[data-week="${w}"][data-group="blog"]`);
+      const blogD = document.querySelectorAll(`[data-week="${w}"][data-group="blog"].done`);
+
+      document.getElementById(`${w}-progress`).textContent   = `${done.length} / ${tasks.length}`;
+      document.getElementById(`${w}-biz-count`).textContent  = `${bizD.length}/${bizT.length}`;
+      document.getElementById(`${w}-blog-count`).textContent = `${blogD.length}/${blogT.length}`;
+
+      const pct   = tasks.length ? Math.round(done.length / tasks.length * 100) : 0;
+      const bar   = document.getElementById(`ov-bar-${w}`);
+      const pctEl = document.getElementById(`ov-pct-${w}`);
+      if (bar)   bar.style.width   = pct + '%';
+      if (pctEl) pctEl.textContent = pct + '%';
+
+      totalDone += done.length;
+      totalAll  += tasks.length;
+    });
+
+    document.getElementById('done-count').textContent  = totalDone;
+    document.getElementById('total-count').textContent = totalAll;
+
+    const bar = document.getElementById('progress-bar');
+    bar.innerHTML = '';
+    const colors = ['#0071e3','#30d158','#bf5af2','#ff9f0a'];
+    weeks.forEach((w, i) => {
+      const tasks = document.querySelectorAll(`[data-week="${w}"]`);
+      const done  = document.querySelectorAll(`[data-week="${w}"].done`);
+      const pct   = tasks.length ? Math.round(done.length / tasks.length * 100) : 0;
+      const seg   = document.createElement('div');
+      seg.className = 'progress-segment';
+      seg.innerHTML = `<div class="fill" style="background:${colors[i]};width:${pct}%"></div>`;
+      bar.appendChild(seg);
+    });
+  }
+
+  function switchTab(tab) {
+    const tabs = ['overview','w1','w2','w3','w4','rules'];
+    document.querySelectorAll('.tabs-wrap .tab').forEach((t, i) => {
+      t.classList.toggle('active', tabs[i] === tab);
+    });
+    document.querySelectorAll('.week-section, .overview, .rules-section').forEach(el => {
+      el.classList.remove('active');
+    });
+    const target = document.getElementById('tab-' + tab);
+    if (target) target.classList.add('active');
+  }
+
+  function applyState() {
+    document.querySelectorAll('.task').forEach(el => {
+      const id = getTaskId(el);
+      if (state[id]) el.classList.add('done');
+    });
+  }
+
+  applyState();
+  updateAll();
+</script>
+</body>
+</html>
